@@ -1,15 +1,22 @@
 import React, {useState, useEffect} from 'react';
 import './App.css';
+import { Bar } from 'react-chartjs-2'
 import Moment from 'react-moment';
-import Chart from './components/Chart'
 
 function App() {
   const url = "https://tie.digitraffic.fi/api/v1/data/tms-data/23922"
+  const [data, setData] = useState([]);
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [options, setOptions] = useState({})
+  const [options, setOptions] = useState('')
   const [percentage, setpercentage] = useState(1);
   const [date, setDate] = useState('')
+
+  /*
+  useEffect(() => {
+    setData(testFunction(url))
+  })
+  */
   
   useEffect(() => {
     setLoading(true)
@@ -17,8 +24,8 @@ function App() {
         try {
           const response = await fetch(url);
           const json = await response.json();
-          setOptions(parseData(json));
-          setLoading(false)
+          parseData(json);
+          setLoading(false) //tää fiksumpaan kohtaan myöhemmin ja kivalla animaatiolla :)
         }
         catch(error) {
           setError(true)
@@ -27,16 +34,19 @@ function App() {
     fetchData(url);
   }, []);
 
-   function parseData(data){
+  function parseData(data){
     var date = data.tmsStations[0].measuredTime
     setDate(date)
     var parsedData = data.tmsStations[0].sensorValues
-    return chartDetails(parsedData);
+    setData(parsedData)
+    chartDetails(parsedData)
   }
 
   function chartDetails(data) {
-    //setpercentage(80);
-    const options = {
+    
+    console.log(data)
+    setpercentage(80);
+    setOptions({
       labels: [data[12].name, data[13].name, data[14].name, data[15].name],
       datasets:[{
         label: 'Jyväskylä - Jämsä',
@@ -57,9 +67,7 @@ function App() {
         ],
         borderWidth: 1
       }]
-    }
-
-    return options;
+    })
   }
 
   if (error) return(<div style={{color: 'red'}}>Error occured while connecting to API</div>)
@@ -70,6 +78,15 @@ function App() {
         <Moment date={date} />
         <Chart data={options}/>
       </div>
+    </div>
+  )
+}
+
+const Chart = ({data}) => {
+  return (
+    <div>
+      <Bar data={data}>
+      </Bar>
     </div>
   )
 }
